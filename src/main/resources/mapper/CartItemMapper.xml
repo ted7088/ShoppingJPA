@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.shoppingjpa.mapper.CartItemMapper">
+
+    <!-- ResultMap -->
+    <resultMap id="CartItemResultMap" type="com.example.shoppingjpa.vo.CartItem">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="productId" column="product_id"/>
+        <result property="quantity" column="quantity"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- 장바구니 추가 -->
+    <insert id="insertCartItem" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO cart_items (user_id, product_id, quantity)
+        VALUES (#{userId}, #{productId}, #{quantity})
+    </insert>
+
+    <!-- 사용자의 장바구니 목록 조회 -->
+    <select id="findByUserId" resultMap="CartItemResultMap">
+        SELECT * FROM cart_items
+        WHERE user_id = #{userId}
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 특정 사용자의 특정 상품 조회 -->
+    <select id="findByUserIdAndProductId" resultMap="CartItemResultMap">
+        SELECT * FROM cart_items
+        WHERE user_id = #{userId} AND product_id = #{productId}
+    </select>
+
+    <!-- 수량 변경 -->
+    <update id="updateQuantity">
+        UPDATE cart_items
+        SET quantity = #{quantity}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 장바구니 항목 삭제 -->
+    <delete id="deleteCartItem">
+        DELETE FROM cart_items WHERE id = #{id}
+    </delete>
+
+    <!-- 사용자의 장바구니 전체 삭제 -->
+    <delete id="deleteAllByUserId">
+        DELETE FROM cart_items WHERE user_id = #{userId}
+    </delete>
+
+    <!-- 사용자의 장바구니 아이템 개수 -->
+    <select id="countByUserId" resultType="int">
+        SELECT COUNT(*) FROM cart_items WHERE user_id = #{userId}
+    </select>
+
+</mapper>
