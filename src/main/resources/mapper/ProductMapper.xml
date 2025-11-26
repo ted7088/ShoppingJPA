@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.shoppingjpa.mapper.ProductMapper">
+
+    <!-- ResultMap 정의 -->
+    <resultMap id="ProductResultMap" type="com.example.shoppingjpa.vo.Product">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="description" column="description"/>
+        <result property="price" column="price"/>
+        <result property="stock" column="stock"/>
+        <result property="category" column="category"/>
+        <result property="imageUrl" column="image_url"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- 상품 등록 -->
+    <insert id="insertProduct" parameterType="com.example.shoppingjpa.vo.Product" 
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO products (name, description, price, stock, category, image_url, created_at, updated_at)
+        VALUES (#{name}, #{description}, #{price}, #{stock}, #{category}, #{imageUrl}, NOW(), NOW())
+    </insert>
+
+    <!-- ID로 상품 조회 -->
+    <select id="findById" resultMap="ProductResultMap">
+        SELECT * FROM products WHERE id = #{id}
+    </select>
+
+    <!-- 상품 수정 -->
+    <update id="updateProduct" parameterType="com.example.shoppingjpa.vo.Product">
+        UPDATE products
+        SET name = #{name},
+            description = #{description},
+            price = #{price},
+            stock = #{stock},
+            category = #{category},
+            image_url = #{imageUrl},
+            updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 상품 삭제 -->
+    <delete id="deleteProduct">
+        DELETE FROM products WHERE id = #{id}
+    </delete>
+    
+    <!-- 전체 상품 목록 조회 (페이징) -->
+    <select id="findAll" resultMap="ProductResultMap">
+        SELECT * FROM products 
+        ORDER BY created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+    
+    <!-- 카테고리별 상품 조회 (페이징) -->
+    <select id="findByCategory" resultMap="ProductResultMap">
+        SELECT * FROM products 
+        WHERE category = #{category}
+        ORDER BY created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+    
+    <!-- 상품명 검색 (페이징) -->
+    <select id="searchByName" resultMap="ProductResultMap">
+        SELECT * FROM products 
+        WHERE name LIKE CONCAT('%', #{keyword}, '%')
+        ORDER BY created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+    
+    <!-- 전체 상품 수 -->
+    <select id="countAll" resultType="int">
+        SELECT COUNT(*) FROM products
+    </select>
+    
+    <!-- 카테고리별 상품 수 -->
+    <select id="countByCategory" resultType="int">
+        SELECT COUNT(*) FROM products WHERE category = #{category}
+    </select>
+    
+    <!-- 검색 결과 수 -->
+    <select id="countByKeyword" resultType="int">
+        SELECT COUNT(*) FROM products WHERE name LIKE CONCAT('%', #{keyword}, '%')
+    </select>
+
+</mapper>

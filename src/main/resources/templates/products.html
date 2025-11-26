@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>상품 목록 - 쇼핑몰</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+        }
+
+        /* 네비게이션 바 */
+        .navbar {
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .navbar-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .search-bar {
+            flex: 1;
+            max-width: 500px;
+            margin: 0 2rem;
+            position: relative;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 0.75rem 3rem 0.75rem 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 25px;
+            font-size: 1rem;
+        }
+
+        .search-bar button {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background-color: #667eea;
+            color: white;
+        }
+
+        /* 메인 컨테이너 */
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+            display: flex;
+            gap: 2rem;
+        }
+
+        /* 사이드바 */
+        .sidebar {
+            width: 200px;
+            flex-shrink: 0;
+        }
+
+        .category-filter {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .category-filter h3 {
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .category-item {
+            padding: 0.5rem 0;
+            cursor: pointer;
+            color: #666;
+            transition: color 0.3s;
+        }
+
+        .category-item:hover,
+        .category-item.active {
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        /* 상품 그리드 */
+        .main-content {
+            flex: 1;
+        }
+
+        .products-header {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            background-color: #f0f0f0;
+        }
+
+        .product-info {
+            padding: 1rem;
+        }
+
+        .product-name {
+            font-size: 1rem;
+            color: #333;
+            margin-bottom: 0.5rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .product-price {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .product-category {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            background-color: #e2e8f0;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 0.5rem;
+        }
+
+        /* 페이징 */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 2rem;
+            padding: 2rem 0;
+        }
+
+        .page-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid #e2e8f0;
+            background: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .page-btn:hover {
+            background-color: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .page-btn.active {
+            background-color: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* 반응형 */
+        @media (max-width: 1024px) {
+            .product-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+            }
+
+            .product-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .search-bar {
+                margin: 1rem 0;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .product-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 네비게이션 바 -->
+    <nav class="navbar">
+        <div class="navbar-content">
+            <a href="/" class="logo">🛒 쇼핑몰</a>
+
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="상품을 검색하세요..." onkeypress="handleSearch(event)">
+                <button onclick="searchProducts()">🔍</button>
+            </div>
+
+            <div class="nav-buttons" id="navButtons">
+                <!-- JavaScript로 동적 생성 -->
+            </div>
+        </div>
+    </nav>
+
+    <!-- 메인 컨테이너 -->
+    <div class="container">
+        <!-- 사이드바 -->
+        <aside class="sidebar">
+            <div class="category-filter">
+                <h3>카테고리</h3>
+                <div class="category-item active" onclick="filterByCategory('')">전체</div>
+                <div class="category-item" onclick="filterByCategory('의류')">의류</div>
+                <div class="category-item" onclick="filterByCategory('도서')">도서</div>
+                <div class="category-item" onclick="filterByCategory('전자제품')">전자제품</div>
+                <div class="category-item" onclick="filterByCategory('식품')">식품</div>
+                <div class="category-item" onclick="filterByCategory('생활용품')">생활용품</div>
+            </div>
+        </aside>
+
+        <!-- 메인 콘텐츠 -->
+        <main class="main-content">
+            <div class="products-header">
+                <h2 id="pageTitle">전체 상품</h2>
+                <span id="totalCount">총 0개</span>
+            </div>
+
+            <div id="productGrid" class="product-grid">
+                <div class="loading">상품을 불러오는 중...</div>
+            </div>
+
+            <div id="pagination" class="pagination"></div>
+        </main>
+    </div>
+
+    <script>
+        let currentPage = 0;
+        let currentCategory = '';
+        let currentKeyword = '';
+        const pageSize = 12;
+
+        // 페이지 로드 시 상품 목록 로드
+        window.addEventListener('DOMContentLoaded', () => {
+            checkLoginStatus();
+            loadProducts();
+        });
+
+        // 로그인 상태 확인
+        async function checkLoginStatus() {
+            try {
+                const response = await fetch('/api/users/me');
+                if (response.ok) {
+                    const user = await response.json();
+                    showLoggedInNav(user);
+                } else {
+                    showLoggedOutNav();
+                }
+            } catch (error) {
+                showLoggedOutNav();
+            }
+        }
+
+        function showLoggedInNav(user) {
+            let navButtons = '';
+            if (user.role === 'ADMIN') {
+                navButtons += `<a href="/admin/products/register" class="btn btn-primary">상품 등록</a>`;
+            }
+            navButtons += `<a href="/" class="btn">홈</a>`;
+            navButtons += `<button class="btn" onclick="logout()">로그아웃</button>`;
+            document.getElementById('navButtons').innerHTML = navButtons;
+        }
+
+        function showLoggedOutNav() {
+            document.getElementById('navButtons').innerHTML = `
+                <a href="/" class="btn">홈</a>
+                <a href="/login" class="btn btn-primary">로그인</a>
+            `;
+        }
+
+        async function logout() {
+            await fetch('/api/users/logout', { method: 'POST' });
+            window.location.href = '/';
+        }
+
+        // 상품 목록 로드
+        async function loadProducts() {
+            try {
+                let url = `/api/products?page=${currentPage}&size=${pageSize}`;
+                if (currentCategory) {
+                    url += `&category=${currentCategory}`;
+                }
+                if (currentKeyword) {
+                    url += `&keyword=${currentKeyword}`;
+                }
+
+                const response = await fetch(url);
+                const data = await response.json();
+
+                displayProducts(data.content);
+                displayPagination(data);
+                updateHeader(data);
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('productGrid').innerHTML = '<div class="loading">상품을 불러오는데 실패했습니다.</div>';
+            }
+        }
+
+        // 상품 표시
+        function displayProducts(products) {
+            const grid = document.getElementById('productGrid');
+
+            if (products.length === 0) {
+                grid.innerHTML = '<div class="loading">상품이 없습니다.</div>';
+                return;
+            }
+
+            grid.innerHTML = products.map(product => `
+                <div class="product-card" onclick="goToDetail(${product.id})">
+                    <img src="${product.imageUrl || 'https://via.placeholder.com/250'}" 
+                         alt="${product.name}" 
+                         class="product-image"
+                         onerror="this.src='https://via.placeholder.com/250'">
+                    <div class="product-info">
+                        <div class="product-name">${product.name}</div>
+                        <div class="product-price">${product.price.toLocaleString()}원</div>
+                        ${product.category ? `<span class="product-category">${product.category}</span>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 페이징 표시
+        function displayPagination(data) {
+            const pagination = document.getElementById('pagination');
+            if (data.totalPages <= 1) {
+                pagination.innerHTML = '';
+                return;
+            }
+
+            let html = '';
+
+            // 이전 버튼
+            html += `<button class="page-btn" ${data.first ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">이전</button>`;
+
+            // 페이지 번호
+            const startPage = Math.max(0, currentPage - 2);
+            const endPage = Math.min(data.totalPages - 1, currentPage + 2);
+
+            for (let i = startPage; i <= endPage; i++) {
+                html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i + 1}</button>`;
+            }
+
+            // 다음 버튼
+            html += `<button class="page-btn" ${data.last ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">다음</button>`;
+
+            pagination.innerHTML = html;
+        }
+
+        // 헤더 업데이트
+        function updateHeader(data) {
+            const title = currentKeyword ? `"${currentKeyword}" 검색 결과` :
+                currentCategory ? `${currentCategory}` : '전체 상품';
+            document.getElementById('pageTitle').textContent = title;
+            document.getElementById('totalCount').textContent = `총 ${data.totalElements}개`;
+        }
+
+        // 페이지 변경
+        function changePage(page) {
+            currentPage = page;
+            loadProducts();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // 카테고리 필터
+        function filterByCategory(category) {
+            currentCategory = category;
+            currentPage = 0;
+            currentKeyword = '';
+            document.getElementById('searchInput').value = '';
+
+            // 카테고리 활성화 표시
+            document.querySelectorAll('.category-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            loadProducts();
+        }
+
+        // 검색
+        function searchProducts() {
+            const keyword = document.getElementById('searchInput').value.trim();
+            if (keyword) {
+                currentKeyword = keyword;
+                currentCategory = '';
+                currentPage = 0;
+
+                // 카테고리 선택 해제
+                document.querySelectorAll('.category-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+
+                loadProducts();
+            }
+        }
+
+        function handleSearch(event) {
+            if (event.key === 'Enter') {
+                searchProducts();
+            }
+        }
+
+        // 상세 페이지로 이동
+        function goToDetail(id) {
+            window.location.href = `/products/${id}`;
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.shoppingjpa.mapper.UserMapper">
+
+    <!-- ResultMap 정의 -->
+    <resultMap id="UserResultMap" type="com.example.shoppingjpa.vo.User">
+        <id property="id" column="id"/>
+        <result property="username" column="username"/>
+        <result property="password" column="password"/>
+        <result property="email" column="email"/>
+        <result property="name" column="name"/>
+        <result property="phone" column="phone"/>
+        <result property="address" column="address"/>
+        <result property="role" column="role"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- 회원 등록 -->
+    <insert id="insertUser" parameterType="com.example.shoppingjpa.vo.User" 
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO users (username, password, email, name, phone, address, role, created_at, updated_at)
+        VALUES (#{username}, #{password}, #{email}, #{name}, #{phone}, #{address}, #{role}, NOW(), NOW())
+    </insert>
+
+    <!-- 사용자명으로 사용자 조회 -->
+    <select id="findByUsername" resultMap="UserResultMap">
+        SELECT * FROM users WHERE username = #{username}
+    </select>
+
+    <!-- 이메일로 사용자 조회 -->
+    <select id="findByEmail" resultMap="UserResultMap">
+        SELECT * FROM users WHERE email = #{email}
+    </select>
+
+    <!-- 사용자명 중복 체크 -->
+    <select id="existsByUsername" resultType="int">
+        SELECT COUNT(*) FROM users WHERE username = #{username}
+    </select>
+
+    <!-- 이메일 중복 체크 -->
+    <select id="existsByEmail" resultType="int">
+        SELECT COUNT(*) FROM users WHERE email = #{email}
+    </select>
+
+    <!-- ID로 사용자 조회 -->
+    <select id="findById" resultMap="UserResultMap">
+        SELECT * FROM users WHERE id = #{id}
+    </select>
+
+</mapper>

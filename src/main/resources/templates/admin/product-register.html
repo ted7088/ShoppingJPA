@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>상품 등록</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 500;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .image-preview {
+            margin-top: 1rem;
+            max-width: 300px;
+            display: none;
+        }
+
+        .image-preview img {
+            width: 100%;
+            border-radius: 5px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .error-message {
+            color: #f56565;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+
+        .success-message {
+            color: #48bb78;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .submit-button,
+        .cancel-button {
+            flex: 1;
+            padding: 1rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .submit-button {
+            background-color: #667eea;
+            color: white;
+        }
+
+        .submit-button:hover {
+            background-color: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .cancel-button {
+            background-color: #e2e8f0;
+            color: #333;
+        }
+
+        .cancel-button:hover {
+            background-color: #cbd5e0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>📦 상품 등록</h1>
+
+        <form id="productForm" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="name">상품명 *</label>
+                <input type="text" id="name" name="name" required>
+                <div class="error-message" id="nameError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="description">상품 설명</label>
+                <textarea id="description" name="description"></textarea>
+                <div class="error-message" id="descriptionError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="price">가격 * (원)</label>
+                <input type="number" id="price" name="price" min="0" required>
+                <div class="error-message" id="priceError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="stock">재고 수량 *</label>
+                <input type="number" id="stock" name="stock" min="0" required>
+                <div class="error-message" id="stockError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="category">카테고리</label>
+                <select id="category" name="category">
+                    <option value="">선택하세요</option>
+                    <option value="전자제품">전자제품</option>
+                    <option value="의류">의류</option>
+                    <option value="식품">식품</option>
+                    <option value="도서">도서</option>
+                    <option value="생활용품">생활용품</option>
+                    <option value="기타">기타</option>
+                </select>
+                <div class="error-message" id="categoryError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="image">상품 이미지</label>
+                <input type="file" id="image" name="image" accept="image/*" onchange="previewImage(event)">
+                <div class="error-message" id="imageError"></div>
+                <div class="image-preview" id="imagePreview">
+                    <img id="previewImg" src="" alt="미리보기">
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button type="button" class="cancel-button" onclick="location.href='/'">취소</button>
+                <button type="submit" class="submit-button">등록</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // 이미지 미리보기
+        function previewImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    document.getElementById('previewImg').src = e.target.result;
+                    document.getElementById('imagePreview').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // 폼 제출
+        document.getElementById('productForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // 모든 에러 메시지 초기화
+            document.querySelectorAll('.error-message').forEach(div => {
+                div.style.display = 'none';
+            });
+
+            // FormData 생성
+            const formData = new FormData();
+            formData.append('name', document.getElementById('name').value);
+            formData.append('description', document.getElementById('description').value);
+            formData.append('price', document.getElementById('price').value);
+            formData.append('stock', document.getElementById('stock').value);
+            formData.append('category', document.getElementById('category').value);
+
+            const imageFile = document.getElementById('image').files[0];
+            if (imageFile) {
+                formData.append('image', imageFile);
+            }
+
+            try {
+                const response = await fetch('/api/products', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const product = await response.json();
+                    alert('상품이 등록되었습니다!');
+                    location.href = '/';
+                } else {
+                    const errors = await response.json();
+
+                    // 각 필드별 에러 메시지 표시
+                    for (const [field, message] of Object.entries(errors)) {
+                        const errorDiv = document.getElementById(field + 'Error');
+                        if (errorDiv) {
+                            errorDiv.textContent = message;
+                            errorDiv.style.display = 'block';
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('상품 등록 중 오류가 발생했습니다');
+            }
+        });
+    </script>
+</body>
+
+</html>

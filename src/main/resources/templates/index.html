@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>쇼핑몰 - 메인</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .navbar {
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background-color: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-secondary {
+            background-color: #764ba2;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #63408a;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-logout {
+            background-color: #f56565;
+            color: white;
+        }
+
+        .btn-logout:hover {
+            background-color: #e53e3e;
+        }
+
+        .container {
+            flex: 1;
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 2rem;
+            width: 100%;
+        }
+
+        .welcome-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 3rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        .welcome-card h1 {
+            color: #333;
+            margin-bottom: 1rem;
+            font-size: 2.5rem;
+        }
+
+        .welcome-card p {
+            color: #666;
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+        }
+
+        .user-info {
+            background-color: #f7fafc;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-top: 2rem;
+        }
+
+        .user-info h3 {
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+
+        .user-info p {
+            color: #333;
+            margin: 0.5rem 0;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="navbar-content">
+            <div class="logo">🛒 쇼핑몰</div>
+            <div class="nav-buttons" id="navButtons">
+                <!-- JavaScript로 동적으로 채워짐 -->
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="welcome-card">
+            <h1>환영합니다!</h1>
+            <p id="welcomeMessage">쇼핑몰에 오신 것을 환영합니다</p>
+
+            <div id="userInfo" style="display: none;">
+                <div class="user-info">
+                    <h3>내 정보</h3>
+                    <p><strong>아이디:</strong> <span id="username"></span></p>
+                    <p><strong>이름:</strong> <span id="name"></span></p>
+                    <p><strong>이메일:</strong> <span id="email"></span></p>
+                    <p><strong>전화번호:</strong> <span id="phone"></span></p>
+                    <p><strong>주소:</strong> <span id="address"></span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 페이지 로드 시 현재 사용자 정보 확인
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const response = await fetch('/api/users/me');
+
+                if (response.ok) {
+                    // 로그인 상태
+                    const user = await response.json();
+                    showLoggedInState(user);
+                } else {
+                    // 로그아웃 상태
+                    showLoggedOutState();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showLoggedOutState();
+            }
+
+            // 사용자 정보 표시
+            document.getElementById('username').textContent = user.username;
+            document.getElementById('name').textContent = user.name;
+            document.getElementById('email').textContent = user.email;
+            document.getElementById('phone').textContent = user.phone;
+            document.getElementById('address').textContent = user.address;
+            document.getElementById('userInfo').style.display = 'block';
+        }
+
+        function showLoggedOutState() {
+                // 네비게이션 버튼
+                document.getElementById('navButtons').innerHTML = `
+                <a href="/login" class="btn btn-primary">로그인</a>
+                <a href="/signup" class="btn btn-secondary">회원가입</a>
+            `;
+
+                // 환영 메시지
+                document.getElementById('welcomeMessage').textContent =
+                    '쇼핑몰에 오신 것을 환영합니다';
+            }
+
+        async function logout() {
+                try {
+                    const response = await fetch('/api/users/logout', {
+                        method: 'POST'
+                    });
+
+                    if (response.ok || response.redirected) {
+                        window.location.href = '/';
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    window.location.href = '/';
+                }
+            }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>상품 상세 - 쇼핑몰</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+        }
+
+        /* 네비게이션 바 */
+        .navbar {
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background-color: #667eea;
+            color: white;
+        }
+
+        /* 메인 컨테이너 */
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .product-detail {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+        }
+
+        .product-image-section {
+            text-align: center;
+        }
+
+        .product-image {
+            width: 100%;
+            max-width: 500px;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .product-info-section h1 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .product-price {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 1.5rem;
+        }
+
+        .product-category {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background-color: #e2e8f0;
+            border-radius: 4px;
+            color: #666;
+            margin-bottom: 1.5rem;
+        }
+
+        .product-description {
+            line-height: 1.6;
+            color: #666;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+        }
+
+        .product-stock {
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            color: #333;
+        }
+
+        .stock-available {
+            color: #48bb78;
+            font-weight: bold;
+        }
+
+        .stock-low {
+            color: #f56565;
+            font-weight: bold;
+        }
+
+        .quantity-selector {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .quantity-selector button {
+            width: 40px;
+            height: 40px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            cursor: pointer;
+            font-size: 1.2rem;
+            border-radius: 4px;
+        }
+
+        .quantity-selector input {
+            width: 80px;
+            height: 40px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn-large {
+            flex: 1;
+            padding: 1rem;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-cart {
+            background-color: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-cart:hover {
+            background-color: #f0f4ff;
+        }
+
+        .btn-buy {
+            background-color: #667eea;
+            color: white;
+        }
+
+        .btn-buy:hover {
+            background-color: #5568d3;
+        }
+
+        .back-button {
+            margin-bottom: 2rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            .product-detail {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 네비게이션 바 -->
+    <nav class="navbar">
+        <div class="navbar-content">
+            <a href="/" class="logo">🛒 쇼핑몰</a>
+            <div class="nav-buttons">
+                <a href="/products" class="btn">상품 목록</a>
+                <a href="/" class="btn btn-primary">홈</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 메인 컨테이너 -->
+    <div class="container">
+        <div class="back-button">
+            <button class="btn" onclick="history.back()">← 뒤로 가기</button>
+        </div>
+
+        <div id="productDetail" class="product-detail">
+            <div class="loading">상품 정보를 불러오는 중...</div>
+        </div>
+    </div>
+
+    <script>
+        let product = null;
+        let quantity = 1;
+
+        // 페이지 로드 시 상품 상세 정보 로드
+        window.addEventListener('DOMContentLoaded', () => {
+            const productId = getProductIdFromUrl();
+            if (productId) {
+                loadProductDetail(productId);
+            }
+        });
+
+        // URL에서 상품 ID 추출
+        function getProductIdFromUrl() {
+            const path = window.location.pathname;
+            const match = path.match(/\/products\/(\d+)/);
+            return match ? match[1] : null;
+        }
+
+        // 상품 상세 정보 로드
+        async function loadProductDetail(productId) {
+            try {
+                const response = await fetch(`/api/products/${productId}`);
+                if (!response.ok) {
+                    throw new Error('상품을 찾을 수 없습니다');
+                }
+
+                product = await response.json();
+                displayProductDetail(product);
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('productDetail').innerHTML =
+                    '<div class="loading">상품 정보를 불러오는데 실패했습니다.</div>';
+            }
+        }
+
+        // 상품 상세 정보 표시
+        function displayProductDetail(product) {
+            const stockStatus = product.stock > 10 ?
+                `<span class="stock-available">재고 충분</span>` :
+                product.stock > 0 ?
+                    `<span class="stock-low">재고 ${product.stock}개</span>` :
+                    `<span class="stock-low">품절</span>`;
+
+            document.getElementById('productDetail').innerHTML = `
+                <div class="product-image-section">
+                    <img src="${product.imageUrl || 'https://via.placeholder.com/500'}" 
+                         alt="${product.name}" 
+                         class="product-image"
+                         onerror="this.src='https://via.placeholder.com/500'">
+                </div>
+                
+                <div class="product-info-section">
+                    ${product.category ? `<span class="product-category">${product.category}</span>` : ''}
+                    <h1>${product.name}</h1>
+                    <div class="product-price">${product.price.toLocaleString()}원</div>
+                    
+                    <div class="product-description">
+                        ${product.description || '상품 설명이 없습니다.'}
+                    </div>
+                    
+                    <div class="product-stock">
+                        재고: ${stockStatus}
+                    </div>
+                    
+                    ${product.stock > 0 ? `
+                        <div class="quantity-selector">
+                            <span>수량:</span>
+                            <button onclick="decreaseQuantity()">-</button>
+                            <input type="number" id="quantity" value="1" min="1" max="${product.stock}" readonly>
+                            <button onclick="increaseQuantity()">+</button>
+                        </div>
+                        
+                        <div class="action-buttons">
+                            <button class="btn-large btn-cart" onclick="addToCart()">🛒 장바구니</button>
+                            <button class="btn-large btn-buy" onclick="buyNow()">구매하기</button>
+                        </div>
+                    ` : '<p style="color: #f56565; font-size: 1.2rem;">현재 품절된 상품입니다.</p>'}
+                </div>
+            `;
+        }
+
+        // 수량 증가
+        function increaseQuantity() {
+            const input = document.getElementById('quantity');
+            const max = parseInt(input.max);
+            if (quantity < max) {
+                quantity++;
+                input.value = quantity;
+            }
+        }
+
+        // 수량 감소
+        function decreaseQuantity() {
+            const input = document.getElementById('quantity');
+            if (quantity > 1) {
+                quantity--;
+                input.value = quantity;
+            }
+        }
+
+        // 장바구니 담기 (UI만)
+        function addToCart() {
+            alert(`${product.name} ${quantity}개를 장바구니에 담았습니다!\\n(장바구니 기능은 추후 구현 예정)`);
+        }
+
+        // 구매하기 (UI만)
+        function buyNow() {
+            alert(`${product.name} ${quantity}개 구매하기\\n총 ${(product.price * quantity).toLocaleString()}원\\n(구매 기능은 추후 구현 예정)`);
+        }
+    </script>
+</body>
+
+</html>
