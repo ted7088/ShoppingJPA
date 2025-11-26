@@ -53,4 +53,12 @@ public class PageController {
     public String productDetail() {
         return "product-detail";
     }
+
+    /**
+     * 장바구니 페이지
+     */
+    @GetMapping("/cart")
+    public String cart() {
+        return "cart";
+    }
 }

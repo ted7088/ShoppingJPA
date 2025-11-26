@@ -30,6 +30,7 @@ public class SecurityConfig {
                                                                 "/api/products", "/api/products/{id}")
                                                 .permitAll()
                                                 .requestMatchers("/admin/**").hasRole("ADMIN")
+                                                .requestMatchers("/cart", "/api/cart/**").authenticated()
                                                 .anyRequest().authenticated())
                                 .formLogin(form -> form
                                                 .loginPage("/login")

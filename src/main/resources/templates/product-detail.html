@@ -17,7 +17,6 @@
             background-color: #f5f5f5;
         }
 
-        /* 네비게이션 바 */
         .navbar {
             background-color: white;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -59,7 +58,6 @@
             color: white;
         }
 
-        /* 메인 컨테이너 */
         .container {
             max-width: 1200px;
             margin: 2rem auto;
@@ -214,7 +212,6 @@
 </head>
 
 <body>
-    <!-- 네비게이션 바 -->
     <nav class="navbar">
         <div class="navbar-content">
             <a href="/" class="logo">🛒 쇼핑몰</a>
@@ -225,7 +222,6 @@
         </div>
     </nav>
 
-    <!-- 메인 컨테이너 -->
     <div class="container">
         <div class="back-button">
             <button class="btn" onclick="history.back()">← 뒤로 가기</button>
@@ -240,7 +236,6 @@
         let product = null;
         let quantity = 1;
 
-        // 페이지 로드 시 상품 상세 정보 로드
         window.addEventListener('DOMContentLoaded', () => {
             const productId = getProductIdFromUrl();
             if (productId) {
@@ -248,14 +243,12 @@
             }
         });
 
-        // URL에서 상품 ID 추출
         function getProductIdFromUrl() {
             const path = window.location.pathname;
             const match = path.match(/\/products\/(\d+)/);
             return match ? match[1] : null;
         }
 
-        // 상품 상세 정보 로드
         async function loadProductDetail(productId) {
             try {
                 const response = await fetch(`/api/products/${productId}`);
@@ -272,7 +265,6 @@
             }
         }
 
-        // 상품 상세 정보 표시
         function displayProductDetail(product) {
             const stockStatus = product.stock > 10 ?
                 `<span class="stock-available">재고 충분</span>` :
@@ -318,7 +310,6 @@
             `;
         }
 
-        // 수량 증가
         function increaseQuantity() {
             const input = document.getElementById('quantity');
             const max = parseInt(input.max);
@@ -328,7 +319,6 @@
             }
         }
 
-        // 수량 감소
         function decreaseQuantity() {
             const input = document.getElementById('quantity');
             if (quantity > 1) {
@@ -337,14 +327,38 @@
             }
         }
 
-        // 장바구니 담기 (UI만)
-        function addToCart() {
-            alert(`${product.name} ${quantity}개를 장바구니에 담았습니다!\\n(장바구니 기능은 추후 구현 예정)`);
+        async function addToCart() {
+            try {
+                const response = await fetch('/api/cart', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        productId: product.id,
+                        quantity: quantity
+                    })
+                });
+
+                if (response.ok) {
+                    if (confirm(`${product.name} ${quantity}개를 장바구니에 담았습니다!\n장바구니로 이동하시겠습니까?`)) {
+                        window.location.href = '/cart';
+                    }
+                } else if (response.status === 401 || response.status === 403) {
+                    alert('로그인이 필요합니다');
+                    window.location.href = '/login';
+                } else {
+                    const error = await response.text();
+                    alert(error || '장바구니 담기에 실패했습니다');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('장바구니 담기에 실패했습니다');
+            }
         }
 
-        // 구매하기 (UI만)
         function buyNow() {
-            alert(`${product.name} ${quantity}개 구매하기\\n총 ${(product.price * quantity).toLocaleString()}원\\n(구매 기능은 추후 구현 예정)`);
+            alert(`${product.name} ${quantity}개 구매하기\n총 ${(product.price * quantity).toLocaleString()}원\n(구매 기능은 추후 구현 예정)`);
         }
     </script>
 </body>
