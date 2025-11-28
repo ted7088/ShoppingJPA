@@ -87,6 +87,34 @@
             background-color: #e53e3e;
         }
 
+        .btn-cart {
+            background-color: #48bb78;
+            color: white;
+            position: relative;
+        }
+
+        .btn-cart:hover {
+            background-color: #38a169;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background-color: #f56565;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
         .container {
             flex: 1;
             max-width: 1200px;
@@ -172,7 +200,7 @@
                 if (response.ok) {
                     // 로그인 상태
                     const user = await response.json();
-                    showLoggedInState(user);
+                    await showLoggedInState(user);
                 } else {
                     // 로그아웃 상태
                     showLoggedOutState();
@@ -181,6 +209,34 @@
                 console.error('Error:', error);
                 showLoggedOutState();
             }
+        });
+
+        async function showLoggedInState(user) {
+            // 장바구니 개수 가져오기
+            let cartCount = 0;
+            try {
+                const cartResponse = await fetch('/api/cart/count');
+                if (cartResponse.ok) {
+                    cartCount = await cartResponse.json();
+                }
+            } catch (error) {
+                console.error('장바구니 개수 조회 실패:', error);
+            }
+
+            // 네비게이션 버튼
+            const cartBadge = cartCount > 0 ? `<span class="cart-badge">${cartCount}</span>` : '';
+            document.getElementById('navButtons').innerHTML = `
+                <a href="/products" class="btn btn-primary">상품 목록</a>
+                <a href="/cart" class="btn btn-cart" style="position: relative;">
+                    🛒 장바구니
+                    ${cartBadge}
+                </a>
+                <button class="btn btn-logout" onclick="logout()">로그아웃</button>
+            `;
+
+            // 환영 메시지
+            document.getElementById('welcomeMessage').textContent =
+                `${user.name}님, 환영합니다!`;
 
             // 사용자 정보 표시
             document.getElementById('username').textContent = user.username;
@@ -192,31 +248,31 @@
         }
 
         function showLoggedOutState() {
-                // 네비게이션 버튼
-                document.getElementById('navButtons').innerHTML = `
+            // 네비게이션 버튼
+            document.getElementById('navButtons').innerHTML = `
                 <a href="/login" class="btn btn-primary">로그인</a>
                 <a href="/signup" class="btn btn-secondary">회원가입</a>
             `;
 
-                // 환영 메시지
-                document.getElementById('welcomeMessage').textContent =
-                    '쇼핑몰에 오신 것을 환영합니다';
-            }
+            // 환영 메시지
+            document.getElementById('welcomeMessage').textContent =
+                '쇼핑몰에 오신 것을 환영합니다';
+        }
 
         async function logout() {
-                try {
-                    const response = await fetch('/api/users/logout', {
-                        method: 'POST'
-                    });
+            try {
+                const response = await fetch('/api/users/logout', {
+                    method: 'POST'
+                });
 
-                    if (response.ok || response.redirected) {
-                        window.location.href = '/';
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
+                if (response.ok || response.redirected) {
                     window.location.href = '/';
                 }
+            } catch (error) {
+                console.error('Error:', error);
+                window.location.href = '/';
             }
+        }
     </script>
 </body>
 

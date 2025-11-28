@@ -123,6 +123,15 @@
             cursor: pointer;
         }
 
+        .cart-item {
+            display: grid;
+            grid-template-columns: auto 100px 2fr 150px 100px 80px;
+            gap: 1rem;
+            align-items: center;
+            padding: 1.5rem 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
         .item-checkbox {
             display: flex;
             align-items: center;
@@ -340,379 +349,184 @@
                 displayCart(cartData);
             } catch (error) {
                 console.error('Error:', error);
-
-        .item - price {
-                    color: #667eea;
-                    font - size: 1.1rem;
-                    font - weight: bold;
-                }
-
-        .quantity - control {
-                    display: flex;
-                    align - items: center;
-                    gap: 0.5rem;
-                }
-
-        .quantity - btn {
-                    width: 30px;
-                    height: 30px;
-                    border: 1px solid #e2e8f0;
-                    background: white;
-                    cursor: pointer;
-                    border - radius: 4px;
-                }
-
-        .quantity - btn:hover {
-                    background - color: #f7fafc;
-                }
-
-        .quantity - input {
-                    width: 50px;
-                    text - align: center;
-                    border: 1px solid #e2e8f0;
-                    border - radius: 4px;
-                    padding: 0.25rem;
-                }
-
-        .item - subtotal {
-                    font - size: 1.2rem;
-                    font - weight: bold;
-                    color: #333;
-                    min - width: 100px;
-                    text - align: right;
-                }
-
-        .delete -btn {
-                    background - color: #f56565;
-                    color: white;
-                    border: none;
-                    padding: 0.5rem 1rem;
-                    border - radius: 4px;
-                    cursor: pointer;
-                }
-
-        .delete -btn:hover {
-                    background - color: #e53e3e;
-                }
-
-        .cart - summary {
-                    background: white;
-                    border - radius: 8px;
-                    padding: 2rem;
-                    height: fit - content;
-                    position: sticky;
-                    top: 100px;
-                }
-
-        .summary - row {
-                    display: flex;
-                    justify - content: space - between;
-                    padding: 1rem 0;
-                    border - bottom: 1px solid #e2e8f0;
-                }
-
-        .summary - total {
-                    font - size: 1.5rem;
-                    font - weight: bold;
-                    color: #667eea;
-                    padding - top: 1rem;
-                }
-
-        .checkout - btn {
-                    width: 100 %;
-                    padding: 1rem;
-                    background - color: #667eea;
-                    color: white;
-                    border: none;
-                    border - radius: 8px;
-                    font - size: 1.1rem;
-                    font - weight: bold;
-                    cursor: pointer;
-                    margin - top: 1rem;
-                }
-
-        .checkout - btn:hover {
-                    background - color: #5568d3;
-                }
-
-        .continue-shopping {
-                    width: 100 %;
-                    padding: 1rem;
-                    background - color: white;
-                    color: #667eea;
-                    border: 2px solid #667eea;
-                    border - radius: 8px;
-                    font - size: 1rem;
-                    cursor: pointer;
-                    margin - top: 1rem;
-                }
-
-        .empty - cart {
-                    text - align: center;
-                    padding: 4rem 2rem;
-                    color: #666;
-                }
-
-        .empty - cart - icon {
-                    font - size: 4rem;
-                    margin - bottom: 1rem;
-                }
-
-                @media(max - width: 768px) {
-            .cart - content {
-                        grid - template - columns: 1fr;
-                    }
-
-            .cart - item {
-                        grid - template - columns: auto 80px 1fr;
-                        gap: 1rem;
-                    }
-
-            .item - image {
-                        width: 80px;
-                        height: 80px;
-                    }
-
-            .quantity - control {
-                        grid - column: 3;
-                    }
-
-            .item - subtotal {
-                        grid - column: 3;
-                        text - align: left;
-                    }
-                }
-    </style >
-</head >
-
-                    <body>
-                        <nav class="navbar">
-                            <div class="navbar-content">
-                                <a href="/" class="logo">🛒 쇼핑몰</a>
-                                <div class="nav-buttons">
-                                    <a href="/products" class="btn">상품 목록</a>
-                                    <a href="/" class="btn btn-primary">홈</a>
-                                </div>
-                            </div>
-                        </nav>
-
-                        <div class="container">
-                            <div class="cart-header">
-                                <div>
-                                    <h1>장바구니</h1>
-                                    <p id="cartCount">총 0개 상품</p>
-                                </div>
-                                <div class="cart-actions">
-                                    <button class="btn btn-danger" onclick="deleteSelected()" id="deleteSelectedBtn"
-                                        style="display: none;">선택 삭제</button>
-                                    <button class="btn btn-danger" onclick="clearAllCart()">전체 삭제</button>
-                                </div>
-                            </div>
-
-                            <div id="cartContent"></div>
-                        </div>
-
-                        <script>
-                            let cartData = null;
-                            let selectedItems = new Set();
-
-        window.addEventListener('DOMContentLoaded', () => {
-                                loadCart();
-        });
-
-                            async function loadCart() {
-            try {
-                const response = await fetch('/api/cart');
-                            if (!response.ok) {
-                    if (response.status === 401 || response.status === 403) {
-                                window.location.href = '/login';
-                            return;
-                    }
-                            throw new Error('장바구니를 불러올 수 없습니다');
-                }
-
-                            cartData = await response.json();
-                            displayCart(cartData);
-            } catch (error) {
-                                console.error('Error:', error);
-                            document.getElementById('cartContent').innerHTML =
-                            '<div class="empty-cart"><p>장바구니를 불러오는데 실패했습니다.</p></div>';
+                document.getElementById('cartContent').innerHTML =
+                    '<div class="empty-cart"><p>장바구니를 불러오는데 실패했습니다.</p></div>';
             }
         }
 
-                            function displayCart(data) {
+        function displayCart(data) {
             const cartCount = document.getElementById('cartCount');
-                            const cartContent = document.getElementById('cartContent');
+            const cartContent = document.getElementById('cartContent');
 
-                            if (!data.items || data.items.length === 0) {
-                                cartCount.textContent = '총 0개 상품';
-                            cartContent.innerHTML = `
-                            <div class="empty-cart">
-                                <div class="empty-cart-icon">🛒</div>
-                                <h2>장바구니가 비어있습니다</h2>
-                                <p>상품을 담아보세요!</p>
-                                <button class="btn btn-primary" onclick="location.href='/products'" style="margin-top: 2rem;">쇼핑 계속하기</button>
-                            </div>
-                            `;
-                            return;
-            }
-
-                            cartCount.textContent = `총 ${data.totalQuantity}개 상품`;
-
-            const itemsHtml = data.items.map(item => `
-                            <div class="cart-item" data-id="${item.cartItemId}">
-                                <div class="item-checkbox">
-                                    <input type="checkbox" class="item-check" value="${item.cartItemId}" onchange="updateSelection()">
-                                </div>
-                                <img src="${item.productImage || 'https://via.placeholder.com/100'}"
-                                    alt="${item.productName}"
-                                    class="item-image"
-                                    onerror="this.src='https://via.placeholder.com/100'">
-                                    <div class="item-info">
-                                        <h3>${item.productName}</h3>
-                                        <div class="item-price">${item.productPrice.toLocaleString()}원</div>
-                                    </div>
-                                    <div class="quantity-control">
-                                        <button class="quantity-btn" onclick="updateQuantity(${item.cartItemId}, ${item.quantity - 1})">-</button>
-                                        <input type="number" class="quantity-input" value="${item.quantity}" readonly>
-                                            <button class="quantity-btn" onclick="updateQuantity(${item.cartItemId}, ${item.quantity + 1})">+</button>
-                                    </div>
-                                    <div class="item-subtotal">${item.subtotal.toLocaleString()}원</div>
-                                    <button class="delete-btn" onclick="removeItem(${item.cartItemId})">삭제</button>
-                            </div>
-                            `).join('');
-
-                            cartContent.innerHTML = `
-                            <div class="cart-content">
-                                <div class="cart-items">
-                                    <div class="select-all-section">
-                                        <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
-                                            <label for="selectAll">전체 선택</label>
-                                    </div>
-                                    ${itemsHtml}
-                                </div>
-                                <div class="cart-summary">
-                                    <h2>주문 요약</h2>
-                                    <div class="summary-row">
-                                        <span>상품 개수</span>
-                                        <span>${data.totalQuantity}개</span>
-                                    </div>
-                                    <div class="summary-row">
-                                        <span>총 상품 금액</span>
-                                        <span>${data.totalPrice.toLocaleString()}원</span>
-                                    </div>
-                                    <div class="summary-row summary-total">
-                                        <span>총 결제 금액</span>
-                                        <span>${data.totalPrice.toLocaleString()}원</span>
-                                    </div>
-                                    <button class="checkout-btn" onclick="checkout()">주문하기</button>
-                                    <button class="continue-shopping" onclick="location.href='/products'">쇼핑 계속하기</button>
-                                </div>
-                            </div>
-                            `;
-        }
-
-                            function toggleSelectAll() {
-            const selectAll = document.getElementById('selectAll');
-                            const checkboxes = document.querySelectorAll('.item-check');
-
-            checkboxes.forEach(checkbox => {
-                                checkbox.checked = selectAll.checked;
-            });
-
-                            updateSelection();
-        }
-
-                            function updateSelection() {
-            const checkboxes = document.querySelectorAll('.item-check:checked');
-            selectedItems = new Set(Array.from(checkboxes).map(cb => parseInt(cb.value)));
-
-                            const deleteBtn = document.getElementById('deleteSelectedBtn');
-            if (selectedItems.size > 0) {
-                                deleteBtn.style.display = 'inline-block';
-            } else {
-                                deleteBtn.style.display = 'none';
-            }
-
-                            // 전체 선택 체크박스 상태 업데이트
-                            const allCheckboxes = document.querySelectorAll('.item-check');
-                            const selectAll = document.getElementById('selectAll');
-                            if (selectAll) {
-                                selectAll.checked = allCheckboxes.length > 0 && selectedItems.size === allCheckboxes.length;
-            }
-        }
-
-                            async function deleteSelected() {
-            if (selectedItems.size === 0) {
-                                alert('삭제할 상품을 선택해주세요');
-                            return;
-            }
-
-                            if (!confirm(`선택한 ${selectedItems.size}개 상품을 삭제하시겠습니까?`)) {
+            if (!data.items || data.items.length === 0) {
+                cartCount.textContent = '총 0개 상품';
+                cartContent.innerHTML = `
+                    <div class="empty-cart">
+                        <div class="empty-cart-icon">🛒</div>
+                        <h2>장바구니가 비어있습니다</h2>
+                        <p>상품을 담아보세요!</p>
+                        <button class="btn btn-primary" onclick="location.href='/products'" style="margin-top: 2rem;">쇼핑 계속하기</button>
+                    </div>
+                `;
                 return;
             }
 
-                            try {
-                const deletePromises = Array.from(selectedItems).map(id =>
-                            fetch(`/api/cart/${id}`, {method: 'DELETE' })
-                            );
+            cartCount.textContent = `총 ${data.totalQuantity}개 상품`;
 
-                            await Promise.all(deletePromises);
-                            selectedItems.clear();
-                            loadCart();
-            } catch (error) {
-                                console.error('Error:', error);
-                            alert('삭제에 실패했습니다');
+            const itemsHtml = data.items.map(item => `
+                <div class="cart-item" data-id="${item.cartItemId}">
+                    <div class="item-checkbox">
+                        <input type="checkbox" class="item-check" value="${item.cartItemId}" onchange="updateSelection()">
+                    </div>
+                    <img src="${item.productImage || 'https://via.placeholder.com/100'}"
+                        alt="${item.productName}"
+                        class="item-image"
+                        onerror="this.src='https://via.placeholder.com/100'">
+                    <div class="item-info">
+                        <h3>${item.productName}</h3>
+                        <div class="item-price">${item.productPrice.toLocaleString()}원</div>
+                    </div>
+                    <div class="quantity-control">
+                        <button class="quantity-btn" onclick="updateQuantity(${item.cartItemId}, ${item.quantity - 1})">-</button>
+                        <input type="number" class="quantity-input" value="${item.quantity}" readonly>
+                        <button class="quantity-btn" onclick="updateQuantity(${item.cartItemId}, ${item.quantity + 1})">+</button>
+                    </div>
+                    <div class="item-subtotal">${item.subtotal.toLocaleString()}원</div>
+                    <button class="delete-btn" onclick="removeItem(${item.cartItemId})">삭제</button>
+                </div>
+            `).join('');
+
+            cartContent.innerHTML = `
+                <div class="cart-content">
+                    <div class="cart-items">
+                        <div class="select-all-section">
+                            <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                            <label for="selectAll">전체 선택</label>
+                        </div>
+                        ${itemsHtml}
+                    </div>
+                    <div class="cart-summary">
+                        <h2>주문 요약</h2>
+                        <div class="summary-row">
+                            <span>상품 개수</span>
+                            <span>${data.totalQuantity}개</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>총 상품 금액</span>
+                            <span>${data.totalPrice.toLocaleString()}원</span>
+                        </div>
+                        <div class="summary-row summary-total">
+                            <span>총 결제 금액</span>
+                            <span>${data.totalPrice.toLocaleString()}원</span>
+                        </div>
+                        <button class="checkout-btn" onclick="checkout()">주문하기</button>
+                        <button class="continue-shopping" onclick="location.href='/products'">쇼핑 계속하기</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleSelectAll() {
+            const selectAll = document.getElementById('selectAll');
+            const checkboxes = document.querySelectorAll('.item-check');
+
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = selectAll.checked;
+            });
+
+            updateSelection();
+        }
+
+        function updateSelection() {
+            const checkboxes = document.querySelectorAll('.item-check:checked');
+            selectedItems = new Set(Array.from(checkboxes).map(cb => parseInt(cb.value)));
+
+            const deleteBtn = document.getElementById('deleteSelectedBtn');
+            if (selectedItems.size > 0) {
+                deleteBtn.style.display = 'inline-block';
+            } else {
+                deleteBtn.style.display = 'none';
+            }
+
+            // 전체 선택 체크박스 상태 업데이트
+            const allCheckboxes = document.querySelectorAll('.item-check');
+            const selectAll = document.getElementById('selectAll');
+            if (selectAll) {
+                selectAll.checked = allCheckboxes.length > 0 && selectedItems.size === allCheckboxes.length;
             }
         }
 
-                            async function clearAllCart() {
+        async function deleteSelected() {
+            if (selectedItems.size === 0) {
+                alert('삭제할 상품을 선택해주세요');
+                return;
+            }
+
+            if (!confirm(`선택한 ${selectedItems.size}개 상품을 삭제하시겠습니까?`)) {
+                return;
+            }
+
+            try {
+                const deletePromises = Array.from(selectedItems).map(id =>
+                    fetch(`/api/cart/${id}`, { method: 'DELETE' })
+                );
+
+                await Promise.all(deletePromises);
+                selectedItems.clear();
+                loadCart();
+            } catch (error) {
+                console.error('Error:', error);
+                alert('삭제에 실패했습니다');
+            }
+        }
+
+        async function clearAllCart() {
             if (!confirm('장바구니를 전체 비우시겠습니까?')) {
                 return;
             }
 
-                            try {
+            try {
                 const response = await fetch('/api/cart', {
-                                method: 'DELETE'
+                    method: 'DELETE'
                 });
 
-                            if (response.ok) {
-                                loadCart();
+                if (response.ok) {
+                    loadCart();
                 } else {
-                                alert('삭제에 실패했습니다');
+                    alert('삭제에 실패했습니다');
                 }
             } catch (error) {
-                                console.error('Error:', error);
-                            alert('삭제에 실패했습니다');
+                console.error('Error:', error);
+                alert('삭제에 실패했습니다');
             }
         }
 
-                            async function updateQuantity(cartItemId, newQuantity) {
+        async function updateQuantity(cartItemId, newQuantity) {
             if (newQuantity < 1) {
                 if (confirm('수량을 1 미만으로 줄이면 상품이 삭제됩니다. 계속하시겠습니까?')) {
-                                removeItem(cartItemId);
+                    removeItem(cartItemId);
                 }
-                            return;
+                return;
             }
 
-                            try {
+            try {
                 const response = await fetch(`/api/cart/${cartItemId}?quantity=${newQuantity}`, {
-                                method: 'PUT'
+                    method: 'PUT'
                 });
 
-                            if (response.ok) {
-                                loadCart();
+                if (response.ok) {
+                    loadCart();
                 } else {
                     const error = await response.text();
-                            alert(error || '수량 변경에 실패했습니다');
+                    alert(error || '수량 변경에 실패했습니다');
                 }
             } catch (error) {
-                                console.error('Error:', error);
-                            alert('수량 변경에 실패했습니다');
+                console.error('Error:', error);
+                alert('수량 변경에 실패했습니다');
             }
         }
 
-                            async function removeItem(cartItemId) {
+        async function removeItem(cartItemId) {
             try {
                 const response = await fetch(`/api/cart/${cartItemId}`, {
                     method: 'DELETE'
