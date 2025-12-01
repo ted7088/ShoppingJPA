@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>주문/결제 - 쇼핑몰</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+        }
+
+        .navbar {
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 1rem 2rem;
+        }
+
+        .navbar-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .order-card {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .payment-methods {
+            display: flex;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .payment-method {
+            flex: 1;
+            padding: 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .payment-method:hover {
+            border-color: #667eea;
+        }
+
+        .payment-method.selected {
+            border-color: #667eea;
+            background-color: #f0f4ff;
+        }
+
+        .payment-method input[type="radio"] {
+            display: none;
+        }
+
+        .payment-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 1rem 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .summary-total {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+            padding-top: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background-color: #667eea;
+            color: white;
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-top: 1rem;
+        }
+
+        .btn-primary:hover {
+            background-color: #5568d3;
+        }
+
+        .btn-secondary {
+            background-color: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            width: 100%;
+            padding: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="navbar-content">
+            <a href="/" class="logo">🛒 쇼핑몰</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="order-card">
+            <h2>주문/결제</h2>
+
+            <div id="orderContent">
+                <div class="loading">주문 정보를 불러오는 중...</div>
+            </div>
+
+            <h2 style="margin-top: 2rem;">결제 수단 선택</h2>
+            <div class="payment-methods">
+                <label class="payment-method selected">
+                    <input type="radio" name="payment" value="MOCK" checked>
+                    <div class="payment-icon">💳</div>
+                    <div>간편 결제</div>
+                </label>
+                <label class="payment-method">
+                    <input type="radio" name="payment" value="CARD">
+                    <div class="payment-icon">💰</div>
+                    <div>카드 결제</div>
+                </label>
+                <label class="payment-method">
+                    <input type="radio" name="payment" value="BANK_TRANSFER">
+                    <div class="payment-icon">🏦</div>
+                    <div>계좌 이체</div>
+                </label>
+            </div>
+
+            <button class="btn btn-primary" onclick="processOrder()">결제하기</button>
+            <button class="btn btn-secondary" onclick="location.href='/cart'">장바구니로 돌아가기</button>
+        </div>
+    </div>
+
+    <script>
+        let cartData = null;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadCartData();
+            setupPaymentMethods();
+        });
+
+        async function loadCartData() {
+            try {
+                const response = await fetch('/api/cart');
+                if (!response.ok) {
+                    if (response.status === 401 || response.status === 403) {
+                        alert('로그인이 필요합니다.');
+                        window.location.href = '/login';
+                        return;
+                    }
+                    throw new Error('장바구니를 불러올 수 없습니다');
+                }
+
+                cartData = await response.json();
+
+                if (!cartData.items || cartData.items.length === 0) {
+                    alert('장바구니가 비어있습니다.');
+                    window.location.href = '/cart';
+                    return;
+                }
+
+                displayOrderSummary(cartData);
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('orderContent').innerHTML =
+                    '<div class="loading">주문 정보를 불러오는데 실패했습니다.</div>';
+            }
+        }
+
+        function displayOrderSummary(data) {
+            const html = `
+                <div class="summary-row">
+                    <span>상품 개수</span>
+                    <span>${data.totalQuantity}개</span>
+                </div>
+                <div class="summary-row">
+                    <span>총 상품 금액</span>
+                    <span>${data.totalPrice.toLocaleString()}원</span>
+                </div>
+                <div class="summary-row summary-total">
+                    <span>총 결제 금액</span>
+                    <span>${data.totalPrice.toLocaleString()}원</span>
+                </div>
+            `;
+            document.getElementById('orderContent').innerHTML = html;
+        }
+
+        function setupPaymentMethods() {
+            const methods = document.querySelectorAll('.payment-method');
+            methods.forEach(method => {
+                method.addEventListener('click', function () {
+                    methods.forEach(m => m.classList.remove('selected'));
+                    this.classList.add('selected');
+                    this.querySelector('input').checked = true;
+                });
+            });
+        }
+
+        async function processOrder() {
+            if (!cartData || !cartData.items || cartData.items.length === 0) {
+                alert('장바구니가 비어있습니다.');
+                return;
+            }
+
+            const paymentMethod = document.querySelector('input[name="payment"]:checked').value;
+
+            if (!confirm(`${cartData.totalPrice.toLocaleString()}원을 결제하시겠습니까?`)) {
+                return;
+            }
+
+            try {
+                // 1. 주문 생성
+                const orderResponse = await fetch('/api/orders', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        paymentMethod: paymentMethod
+                    })
+                });
+
+                if (!orderResponse.ok) {
+                    const error = await orderResponse.text();
+                    alert(error || '주문 생성에 실패했습니다.');
+                    return;
+                }
+
+                const order = await orderResponse.json();
+
+                // 2. 결제 처리 (Mock)
+                const paymentResponse = await fetch(`/api/orders/${order.id}/payment`, {
+                    method: 'POST'
+                });
+
+                if (!paymentResponse.ok) {
+                    alert('결제 처리에 실패했습니다.');
+                    return;
+                }
+
+                // 3. 주문 완료 페이지로 이동
+                window.location.href = `/order-complete?orderNumber=${order.orderNumber}`;
+            } catch (error) {
+                console.error('Error:', error);
+                alert('주문 처리 중 오류가 발생했습니다.');
+            }
+        }
+    </script>
+</body>
+
+</html>

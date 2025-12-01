@@ -84,5 +84,10 @@
     <select id="countByKeyword" resultType="int">
         SELECT COUNT(*) FROM products WHERE name LIKE CONCAT('%', #{keyword}, '%')
     </select>
+    
+    <!-- 재고 업데이트 -->
+    <update id="updateStock">
+        UPDATE products SET stock = #{stock}, updated_at = NOW() WHERE id = #{id}
+    </update>
 
 </mapper>

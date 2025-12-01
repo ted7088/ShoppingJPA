@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>상품 목록 - 쇼핑몰</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+        }
+
+        /* 네비게이션 바 */
+        .navbar {
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .navbar-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .search-bar {
+            flex: 1;
+            max-width: 500px;
+            margin: 0 2rem;
+            position: relative;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 0.75rem 3rem 0.75rem 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 25px;
+            font-size: 1rem;
+        }
+
+        .search-bar button {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            `;
+        }
+
+        async function logout() {
+            await fetch('/api/users/logout', {
+                method: 'POST'
+            });
+        window.location.href='/';
+        }
+
+        // 상품 목록 로드
+        async function loadProducts() {
+            try {
+                let url=`/api/products?page=$ {
+                    currentPage
+                }
+
+                &size=$ {
+                    pageSize
+                }
+
+                `;
+
+                if (currentCategory) {
+                    url+=`&category=$ {
+                        currentCategory
+                    }
+
+                    `;
+                }
+
+                if (currentKeyword) {
+                    url+=`&keyword=$ {
+                        currentKeyword
+                    }
+
+                    `;
+                }
+
+                const response=await fetch(url);
+                const data=await response.json();
+
+                displayProducts(data.content);
+                displayPagination(data);
+                updateHeader(data);
+            }
+
+            catch (error) {
+                console.error('Error:', error);
+                document.getElementById('productGrid').innerHTML='<div class="loading">상품을 불러오는데 실패했습니다.</div>';
+            }
+        }
+
+        // 상품 표시
+        function displayProducts(products) {
+            const grid=document.getElementById('productGrid');
+
+            if (products.length===0) {
+                grid.innerHTML='<div class="loading">상품이 없습니다.</div>';
+                return;
+            }
+
+            grid.innerHTML=products.map(product=> ` <div class="product-card" onclick="goToDetail(${product.id})" > <img src="${product.imageUrl || 'https://via.placeholder.com/250'}"
+                alt="${product.name}"
+                class="product-image"
+
+                onerror="this.src='https://via.placeholder.com/250'" > <div class="product-info" > <div class="product-name" >$ {
+                    product.name
+                }
+
+                </div> <div class="product-price" >$ {
+                    product.price.toLocaleString()
+                }
+
+                원</div> $ {
+                    product.category ? `<span class="product-category" >$ {
+                        product.category
+                    }
+
+                    </span>` : ''
+                }
+
+                </div> </div> `).join('');
+        }
+
+        // 페이징 표시
+        function displayPagination(data) {
+            const pagination=document.getElementById('pagination');
+
+            if (data.totalPages <=1) {
+                pagination.innerHTML='';
+                return;
+            }
+
+            let html='';
+
+            // 이전 버튼
+            html+=`<button class="page-btn"$ {
+                data.first ? 'disabled': ''
+            }
+
+            onclick="changePage(${currentPage - 1})">이전</button>`;
+
+            // 페이지 번호
+            const startPage=Math.max(0, currentPage - 2);
+            const endPage=Math.min(data.totalPages - 1, currentPage + 2);
+
+            for (let i=startPage; i <=endPage; i++) {
+                html+=`<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">$ {
+                    i+1
+                }
+
+                </button>`;
+            }
+
+            // 다음 버튼
+            html+=`<button class="page-btn"$ {
+                data.last ? 'disabled': ''
+            }
+
+            onclick="changePage(${currentPage + 1})">다음</button>`;
+
+            pagination.innerHTML=html;
+        }
+
+        // 헤더 업데이트
+        function updateHeader(data) {
+            const title=currentKeyword ? `"${currentKeyword}" 검색 결과` : currentCategory ? `$ {
+                currentCategory
+            }
+
+            ` : '전체 상품';
+            document.getElementById('pageTitle').textContent=title;
+
+            document.getElementById('totalCount').textContent=`총 $ {
+                data.totalElements
+            }
+
+            개`;
+        }
+
+        // 페이지 변경
+        function changePage(page) {
+            currentPage=page;
+            loadProducts();
+
+            window.scrollTo({
+                top: 0, behavior: 'smooth'
+            });
+        }
+
+        // 카테고리 필터
+        function filterByCategory(category) {
+            currentCategory=category;
+            currentPage=0;
+            currentKeyword='';
+            document.getElementById('searchInput').value='';
+
+            // 카테고리 활성화 표시
+            document.querySelectorAll('.category-item').forEach(item=> {
+                    item.classList.remove('active');
+                });
+            event.target.classList.add('active');
+
+            loadProducts();
+        }
+
+        // 검색
+        function searchProducts() {
+            const keyword=document.getElementById('searchInput').value.trim();
+
+            if (keyword) {
+                currentKeyword=keyword;
+                currentCategory='';
+                currentPage=0;
+
+                // 카테고리 선택 해제
+                document.querySelectorAll('.category-item').forEach(item=> {
+                        item.classList.remove('active');
+                    });
+
+                loadProducts();
+            }
+        }
+
+        function handleSearch(event) {
+            if (event.key==='Enter') {
+                searchProducts();
+            }
+        }
+
+        // 상세 페이지로 이동
+        function goToDetail(id) {
+            window.location.href=`/products/$ {
+                id
+            }
+
+            `;
+        }
+
+        </script></body></html>
