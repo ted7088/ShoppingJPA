@@ -44,6 +44,14 @@ public class OrderController {
     }
 
     /**
+     * 주문 상세 페이지
+     */
+    @GetMapping("/orders/{id}")
+    public String orderDetailPage(@PathVariable Long id) {
+        return "order-detail";
+    }
+
+    /**
      * 주문 생성 API
      */
     @PostMapping("/api/orders")

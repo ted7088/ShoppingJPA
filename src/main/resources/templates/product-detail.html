@@ -357,8 +357,33 @@
             }
         }
 
-        function buyNow() {
-            alert(`${product.name} ${quantity}개 구매하기\n총 ${(product.price * quantity).toLocaleString()}원\n(구매 기능은 추후 구현 예정)`);
+        async function buyNow() {
+            try {
+                const response = await fetch('/api/cart', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        productId: product.id,
+                        quantity: quantity
+                    })
+                });
+
+                if (response.ok) {
+                    // 장바구니에 담은 후 바로 장바구니 페이지로 이동
+                    window.location.href = '/cart';
+                } else if (response.status === 401 || response.status === 403) {
+                    alert('로그인이 필요합니다');
+                    window.location.href = '/login';
+                } else {
+                    const error = await response.text();
+                    alert(error || '장바구니 담기에 실패했습니다');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('장바구니 담기에 실패했습니다');
+            }
         }
     </script>
 </body>
