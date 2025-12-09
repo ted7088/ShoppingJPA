@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+//카트아이템
 public class CartItem {
     private Long id;
     private Long userId;
