@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>마이페이지 - 쇼핑몰</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+        }
+
+        .navbar {
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .navbar-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background-color: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #5568d3;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .page-header {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px 8px 0 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .page-header h1 {
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-header p {
+            color: #666;
+        }
+
+        /* 탭 스타일 */
+        .tabs {
+            background: white;
+            display: flex;
+            border-bottom: 2px solid #e2e8f0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 1.2rem;
+            text-align: center;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #666;
+            background: white;
+            border: none;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .tab:hover {
+            background-color: #f7fafc;
+            color: #667eea;
+        }
+
+        .tab.active {
+            color: #667eea;
+            background-color: #f0f4ff;
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: #667eea;
+        }
+
+        .tab-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            min-height: 400px;
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 주문 내역 스타일 */
+        .orders-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .order-card {
+            background: #f9f9f9;
+            border-radius: 8px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-left: 4px solid #667eea;
+        }
+
+        .order-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .order-number {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .order-status {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        .status-paid {
+            background-color: #c6f6d5;
+            color: #22543d;
+        }
+
+        .order-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 0.25rem;
+        }
+
+        .info-value {
+            font-size: 1rem;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .order-total {
+            text-align: right;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        /* 문의 내역 스타일 */
+        .inquiry-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .inquiry-item {
+            background: #f9f9f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: all 0.3s;
+        }
+
+        .inquiry-item:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .inquiry-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+
+        .inquiry-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .secret-badge {
+            font-size: 0.9rem;
+            color: #f56565;
+        }
+
+        .inquiry-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 1rem;
+        }
+
+        .inquiry-content {
+            padding: 1rem;
+            background-color: white;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .inquiry-answer {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: #f0f4ff;
+            border-left: 4px solid #667eea;
+            border-radius: 4px;
+        }
+
+        .answer-label {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .answer-content {
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state h2 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state p {
+            color: #666;
+            margin-bottom: 2rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            .tabs {
+                flex-direction: column;
+            }
+
+            .tab {
+                border-bottom: 1px solid #e2e8f0;
+            }
+
+            .order-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+
+            .order-info {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="navbar-content">
+            <a href="/" class="logo">🛒 쇼핑몰</a>
+            <div class="nav-buttons">
+                <a href="/products" class="btn">상품 목록</a>
+                <a href="/" class="btn btn-primary">홈</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>마이페이지</h1>
+            <p>주문 내역과 문의 내역을 확인하세요</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('orders')">
+                📦 주문 내역
+            </button>
+            <button class="tab" onclick="switchTab('inquiries')">
+                💬 문의 내역
+            </button>
+        </div>
+
+        <div class="tab-content">
+            <!-- 주문 내역 탭 -->
+            <div id="orders-tab" class="tab-pane active">
+                <div id="ordersContent">
+                    <div class="loading">주문 내역을 불러오는 중...</div>
+                </div>
+            </div>
+
+            <!-- 문의 내역 탭 -->
+            <div id="inquiries-tab" class="tab-pane">
+                <div id="inquiriesContent">
+                    <div class="loading">문의 내역을 불러오는 중...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentTab = 'orders';
+        let ordersLoaded = false;
+        let inquiriesLoaded = false;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadOrders();
+        });
+
+        function switchTab(tabName) {
+            // 탭 버튼 활성화
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // 탭 패널 활성화
+            document.querySelectorAll('.tab-pane').forEach(pane => {
+                pane.classList.remove('active');
+            });
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+
+            currentTab = tabName;
+
+            // 데이터 로드
+            if (tabName === 'orders' && !ordersLoaded) {
+                loadOrders();
+            } else if (tabName === 'inquiries' && !inquiriesLoaded) {
+                loadInquiries();
+            }
+        }
+
+        // ========== 주문 내역 ==========
+
+        async function loadOrders() {
+            try {
+                const response = await fetch('/api/orders');
+                if (!response.ok) {
+                    if (response.status === 401 || response.status === 403) {
+                        alert('로그인이 필요합니다.');
+                        window.location.href = '/login';
+                        return;
+                    }
+                    throw new Error('주문 내역을 불러올 수 없습니다');
+                }
+
+                const orders = await response.json();
+                displayOrders(orders);
+                ordersLoaded = true;
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('ordersContent').innerHTML =
+                    '<div class="loading">주문 내역을 불러오는데 실패했습니다.</div>';
+            }
+        }
+
+        function displayOrders(orders) {
+            const ordersContent = document.getElementById('ordersContent');
+
+            if (!orders || orders.length === 0) {
+                ordersContent.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📦</div>
+                        <h2>주문 내역이 없습니다</h2>
+                        <p>첫 주문을 시작해보세요!</p>
+                        <a href="/products" class="btn btn-primary">쇼핑하러 가기</a>
+                    </div>
+                `;
+                return;
+            }
+
+            const ordersHtml = orders.map(order => {
+                const statusText = getStatusText(order.status);
+                const itemCount = order.items ? order.items.length : 0;
+                const itemsText = order.items && order.items.length > 0
+                    ? `${order.items[0].productName}${itemCount > 1 ? ` 외 ${itemCount - 1}건` : ''}`
+                    : '상품 정보 없음';
+
+                return `
+                    <div class="order-card" onclick="viewOrderDetail(${order.id})">
+                        <div class="order-header">
+                            <div class="order-number">주문번호: ${order.orderNumber}</div>
+                            <span class="order-status status-paid">${statusText}</span>
+                        </div>
+                        <div class="order-info">
+                            <div class="info-item">
+                                <span class="info-label">주문 일시</span>
+                                <span class="info-value">${new Date(order.createdAt).toLocaleString('ko-KR')}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">결제 수단</span>
+                                <span class="info-value">${order.paymentMethod}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">주문 상품</span>
+                                <span class="info-value">${itemsText}</span>
+                            </div>
+                        </div>
+                        <div class="order-total">
+                            총 ${order.totalAmount.toLocaleString()}원
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            ordersContent.innerHTML = `<div class="orders-grid">${ordersHtml}</div>`;
+        }
+
+        function getStatusText(status) {
+            switch (status) {
+                case 'PAID':
+                    return '결제 완료';
+                case 'PENDING':
+                    return '결제 대기';
+                case 'CANCELLED':
+                    return '취소됨';
+                default:
+                    return status;
+            }
+        }
+
+        function viewOrderDetail(orderId) {
+            window.location.href = `/orders/${orderId}`;
+        }
+
+        // ========== 문의 내역 ==========
+
+        async function loadInquiries() {
+            try {
+                const response = await fetch('/api/users/me/inquiries');
+                if (!response.ok) {
+                    if (response.status === 401 || response.status === 403) {
+                        alert('로그인이 필요합니다.');
+                        window.location.href = '/login';
+                        return;
+                    }
+                    throw new Error('문의 내역을 불러올 수 없습니다');
+                }
+
+                const inquiries = await response.json();
+                displayInquiries(inquiries);
+                inquiriesLoaded = true;
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('inquiriesContent').innerHTML =
+                    '<div class="loading">문의 내역을 불러오는데 실패했습니다.</div>';
+            }
+        }
+
+        function displayInquiries(inquiries) {
+            const inquiriesContent = document.getElementById('inquiriesContent');
+
+            if (!inquiries || inquiries.length === 0) {
+                inquiriesContent.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">💬</div>
+                        <h2>문의 내역이 없습니다</h2>
+                        <p>상품에 대해 궁금한 점을 문의해보세요!</p>
+                        <a href="/products" class="btn btn-primary">상품 보러 가기</a>
+                    </div>
+                `;
+                return;
+            }
+
+            const inquiriesHtml = inquiries.map(inquiry => {
+                const date = new Date(inquiry.createdAt).toLocaleDateString('ko-KR');
+                const secretBadge = inquiry.isSecret ? '<span class="secret-badge">🔒 비밀글</span>' : '';
+                const answerStatus = inquiry.answer ? '<span style="color: #667eea;">✓ 답변완료</span>' : '<span style="color: #999;">답변대기</span>';
+
+                let answerHTML = '';
+                if (inquiry.answer) {
+                    const answerDate = new Date(inquiry.answeredAt).toLocaleDateString('ko-KR');
+                    answerHTML = `
+                        <div class="inquiry-answer">
+                            <div class="answer-label">관리자 답변 (${answerDate})</div>
+                            <div class="answer-content">${inquiry.answer}</div>
+                        </div>
+                    `;
+                }
+
+                return `
+                    <div class="inquiry-item">
+                        <div class="inquiry-header">
+                            <div class="inquiry-title">
+                                ${inquiry.title}
+                                ${secretBadge}
+                            </div>
+                            <div>${answerStatus}</div>
+                        </div>
+                        <div class="inquiry-meta">
+                            <span>작성일: ${date}</span>
+                            <span>상품 ID: ${inquiry.productId}</span>
+                        </div>
+                        <div class="inquiry-content">${inquiry.content}</div>
+                        ${answerHTML}
+                    </div>
+                `;
+            }).join('');
+
+            inquiriesContent.innerHTML = `<div class="inquiry-list">${inquiriesHtml}</div>`;
+        }
+    </script>
+</body>
+
+</html>
