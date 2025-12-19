@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+//주문 아이템
 public class OrderItem {
     private Long id;
     private Long orderId;
