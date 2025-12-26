@@ -385,6 +385,9 @@
             <button class="tab active" onclick="switchTab('orders')">
                 📦 주문 내역
             </button>
+            <button class="tab" onclick="switchTab('wishlist')">
+                ❤️ 위시리스트
+            </button>
             <button class="tab" onclick="switchTab('inquiries')">
                 💬 문의 내역
             </button>
@@ -395,6 +398,13 @@
             <div id="orders-tab" class="tab-pane active">
                 <div id="ordersContent">
                     <div class="loading">주문 내역을 불러오는 중...</div>
+                </div>
+            </div>
+
+            <!-- 위시리스트 탭 -->
+            <div id="wishlist-tab" class="tab-pane">
+                <div id="wishlistContent">
+                    <div class="loading">위시리스트를 불러오는 중...</div>
                 </div>
             </div>
 
@@ -410,6 +420,7 @@
     <script>
         let currentTab = 'orders';
         let ordersLoaded = false;
+        let wishlistLoaded = false;
         let inquiriesLoaded = false;
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -434,6 +445,8 @@
             // 데이터 로드
             if (tabName === 'orders' && !ordersLoaded) {
                 loadOrders();
+            } else if (tabName === 'wishlist' && !wishlistLoaded) {
+                loadWishlist();
             } else if (tabName === 'inquiries' && !inquiriesLoaded) {
                 loadInquiries();
             }
@@ -607,6 +620,140 @@
             }).join('');
 
             inquiriesContent.innerHTML = `<div class="inquiry-list">${inquiriesHtml}</div>`;
+        }
+
+        // ========== 위시리스트 ==========
+
+        async function loadWishlist() {
+            try {
+                const response = await fetch('/api/wishlist');
+                if (!response.ok) {
+                    if (response.status === 401 || response.status === 403) {
+                        alert('로그인이 필요합니다.');
+                        window.location.href = '/login';
+                        return;
+                    }
+                    throw new Error('위시리스트를 불러올 수 없습니다');
+                }
+
+                const wishlist = await response.json();
+                displayWishlist(wishlist);
+                wishlistLoaded = true;
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('wishlistContent').innerHTML =
+                    '<div class="loading">위시리스트를 불러오는데 실패했습니다.</div>';
+            }
+        }
+
+        function displayWishlist(wishlist) {
+            const wishlistContent = document.getElementById('wishlistContent');
+
+            if (!wishlist || wishlist.length === 0) {
+                wishlistContent.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">💔</div>
+                        <h2>위시리스트가 비어있습니다</h2>
+                        <p>마음에 드는 상품을 위시리스트에 추가해보세요!</p>
+                        <a href="/products" class="btn btn-primary">쇼핑하러 가기</a>
+                    </div>
+                `;
+                return;
+            }
+
+            const wishlistHtml = wishlist.map(item => {
+                const stockStatus = item.productStock > 10
+                    ? `<span style="color: #48bb78;">재고 충분</span>`
+                    : item.productStock > 0
+                        ? `<span style="color: #f56565;">재고 ${item.productStock}개</span>`
+                        : `<span style="color: #f56565;">품절</span>`;
+
+                return `
+                    <div class="order-card" style="cursor: default;">
+                        <div style="display: flex; gap: 1.5rem;">
+                            <img src="${item.productImageUrl || 'https://via.placeholder.com/150'}" 
+                                 alt="${item.productName}" 
+                                 style="width: 150px; height: 150px; object-fit: cover; border-radius: 8px; cursor: pointer;"
+                                 onclick="window.location.href='/products/${item.productId}'"
+                                 onerror="this.src='https://via.placeholder.com/150'">
+                            <div style="flex: 1;">
+                                <div style="font-size: 1.2rem; font-weight: 600; margin-bottom: 0.5rem; cursor: pointer;"
+                                     onclick="window.location.href='/products/${item.productId}'">
+                                    ${item.productName}
+                                </div>
+                                ${item.productCategory ? `<span style="display: inline-block; padding: 0.25rem 0.5rem; background-color: #e2e8f0; border-radius: 4px; font-size: 0.85rem; color: #666; margin-bottom: 0.5rem;">${item.productCategory}</span>` : ''}
+                                <div style="font-size: 1.3rem; font-weight: bold; color: #667eea; margin: 0.5rem 0;">
+                                    ${item.productPrice.toLocaleString()}원
+                                </div>
+                                <div style="margin-bottom: 1rem;">${stockStatus}</div>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <button class="btn btn-primary" 
+                                            onclick="addToCartFromWishlist(${item.productId})"
+                                            ${item.productStock <= 0 ? 'disabled' : ''}
+                                            style="${item.productStock <= 0 ? 'opacity: 0.5; cursor: not-allowed;' : ''}">
+                                        🛒 장바구니 담기
+                                    </button>
+                                    <button class="btn" 
+                                            style="background-color: #f56565; color: white;"
+                                            onclick="removeFromWishlistInMypage(${item.productId})">
+                                        삭제
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            wishlistContent.innerHTML = `<div class="orders-grid">${wishlistHtml}</div>`;
+        }
+
+        async function removeFromWishlistInMypage(productId) {
+            if (!confirm('위시리스트에서 제거하시겠습니까?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/wishlist/${productId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    loadWishlist(); // 목록 새로고침
+                } else {
+                    alert('위시리스트 제거에 실패했습니다');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('위시리스트 제거에 실패했습니다');
+            }
+        }
+
+        async function addToCartFromWishlist(productId) {
+            try {
+                const response = await fetch('/api/cart', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        productId: productId,
+                        quantity: 1
+                    })
+                });
+
+                if (response.ok) {
+                    if (confirm('장바구니에 담았습니다!\n장바구니로 이동하시겠습니까?')) {
+                        window.location.href = '/cart';
+                    }
+                } else {
+                    const error = await response.text();
+                    alert(error || '장바구니 담기에 실패했습니다');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('장바구니 담기에 실패했습니다');
+            }
         }
     </script>
 </body>

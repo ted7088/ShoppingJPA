@@ -396,6 +396,29 @@
             background-color: #5568d3;
         }
 
+        /* 위시리스트 버튼 */
+        .btn-wishlist {
+            flex: 1;
+            padding: 1rem;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border: 2px solid #f56565;
+            background-color: white;
+            color: #f56565;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-wishlist:hover {
+            background-color: #fff5f5;
+        }
+
+        .btn-wishlist.active {
+            background-color: #f56565;
+            color: white;
+        }
+
         @media (max-width: 768px) {
             .product-detail {
                 grid-template-columns: 1fr;
@@ -472,6 +495,7 @@
                 loadProductDetail(productId);
                 loadInquiries(productId);
                 setupInquiryForm(productId);
+                checkWishlistStatus(productId);
             }
         });
 
@@ -534,6 +558,11 @@
                         </div>
                         
                         <div class="action-buttons">
+                            <button class="btn-large btn-wishlist" id="wishlistBtn" onclick="toggleWishlist()">
+                                <span id="wishlistIcon">♡</span> 위시리스트
+                            </button>
+                        </div>
+                        <div class="action-buttons" style="margin-top: 0.5rem;">
                             <button class="btn-large btn-cart" onclick="addToCart()">🛒 장바구니</button>
                             <button class="btn-large btn-buy" onclick="buyNow()">구매하기</button>
                         </div>
@@ -836,6 +865,83 @@
             } catch (error) {
                 console.error('Error:', error);
                 alert('답변 등록에 실패했습니다');
+            }
+        }
+
+        // ========== 위시리스트 기능 ==========
+
+        async function checkWishlistStatus(productId) {
+            try {
+                const response = await fetch(`/api/wishlist/check/${productId}`);
+                if (response.ok) {
+                    const isInWishlist = await response.json();
+                    updateWishlistButton(isInWishlist);
+                }
+            } catch (error) {
+                console.error('Error checking wishlist:', error);
+            }
+        }
+
+        async function toggleWishlist() {
+            if (!product) return;
+
+            const wishlistBtn = document.getElementById('wishlistBtn');
+            const isInWishlist = wishlistBtn.classList.contains('active');
+
+            try {
+                if (isInWishlist) {
+                    // 위시리스트에서 제거
+                    const response = await fetch(`/api/wishlist/${product.id}`, {
+                        method: 'DELETE'
+                    });
+
+                    if (response.ok) {
+                        updateWishlistButton(false);
+                    } else if (response.status === 401 || response.status === 403) {
+                        alert('로그인이 필요합니다');
+                        window.location.href = '/login';
+                    } else {
+                        alert('위시리스트 제거에 실패했습니다');
+                    }
+                } else {
+                    // 위시리스트에 추가
+                    const response = await fetch('/api/wishlist', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ productId: product.id })
+                    });
+
+                    if (response.ok) {
+                        updateWishlistButton(true);
+                    } else if (response.status === 401 || response.status === 403) {
+                        alert('로그인이 필요합니다');
+                        window.location.href = '/login';
+                    } else if (response.status === 409) {
+                        alert('이미 위시리스트에 추가된 상품입니다');
+                    } else {
+                        alert('위시리스트 추가에 실패했습니다');
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('요청 처리에 실패했습니다');
+            }
+        }
+
+        function updateWishlistButton(isInWishlist) {
+            const wishlistBtn = document.getElementById('wishlistBtn');
+            const wishlistIcon = document.getElementById('wishlistIcon');
+
+            if (wishlistBtn && wishlistIcon) {
+                if (isInWishlist) {
+                    wishlistBtn.classList.add('active');
+                    wishlistIcon.textContent = '❤️';
+                } else {
+                    wishlistBtn.classList.remove('active');
+                    wishlistIcon.textContent = '♡';
+                }
             }
         }
     </script>

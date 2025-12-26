@@ -182,6 +182,7 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             transition: transform 0.3s, box-shadow 0.3s;
             cursor: pointer;
+            position: relative;
         }
 
         .product-card:hover {
@@ -223,6 +224,35 @@
             font-size: 0.75rem;
             color: #666;
             margin-top: 0.5rem;
+        }
+
+        /* 위시리스트 버튼 */
+        .wishlist-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 40px;
+            height: 40px;
+            background-color: rgba(255, 255, 255, 0.95);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            z-index: 10;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .wishlist-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .wishlist-btn.active {
+            background-color: rgba(245, 101, 101, 0.1);
         }
 
         /* 페이징 */
@@ -351,10 +381,12 @@
         let currentCategory = '';
         let currentKeyword = '';
         const pageSize = 12;
+        let wishlistItems = new Set(); // 위시리스트 상품 ID 저장
 
         // 페이지 로드 시 상품 목록 로드
         window.addEventListener('DOMContentLoaded', () => {
             checkLoginStatus();
+            loadWishlistStatus();
             loadProducts();
         });
 
@@ -391,6 +423,7 @@
             }
 
             navButtons += `<a href="/mypage" class="btn btn-primary">📋 마이페이지</a>`;
+            navButtons += `<a href="/wishlist" class="btn" style="background-color: #f56565; color: white;">❤️ 위시리스트</a>`;
             const cartBadge = cartCount > 0 ? `<span class="cart-badge">${cartCount}</span>` : '';
             navButtons += `<a href="/cart" class="btn btn-cart" style="position: relative;">🛒 장바구니${cartBadge}</a>`;
             navButtons += `<a href="/" class="btn">홈</a>`;
@@ -442,19 +475,31 @@
                 return;
             }
 
-            grid.innerHTML = products.map(product => `
-                <div class="product-card" onclick="goToDetail(${product.id})">
-                    <img src="${product.imageUrl || 'https://via.placeholder.com/250'}" 
-                         alt="${product.name}" 
-                         class="product-image"
-                         onerror="this.src='https://via.placeholder.com/250'">
-                    <div class="product-info">
-                        <div class="product-name">${product.name}</div>
-                        <div class="product-price">${product.price.toLocaleString()}원</div>
-                        ${product.category ? `<span class="product-category">${product.category}</span>` : ''}
+            grid.innerHTML = products.map(product => {
+                const isInWishlist = wishlistItems.has(product.id);
+                const heartIcon = isInWishlist ? '❤️' : '♡';
+                const wishlistClass = isInWishlist ? 'active' : '';
+
+                return `
+                    <div class="product-card">
+                        <button class="wishlist-btn ${wishlistClass}" 
+                                onclick="toggleWishlist(event, ${product.id})" 
+                                title="위시리스트">
+                            ${heartIcon}
+                        </button>
+                        <img src="${product.imageUrl || 'https://via.placeholder.com/250'}" 
+                             alt="${product.name}" 
+                             class="product-image"
+                             onclick="goToDetail(${product.id})"
+                             onerror="this.src='https://via.placeholder.com/250'">
+                        <div class="product-info" onclick="goToDetail(${product.id})">
+                            <div class="product-name">${product.name}</div>
+                            <div class="product-price">${product.price.toLocaleString()}원</div>
+                            ${product.category ? `<span class="product-category">${product.category}</span>` : ''}
+                        </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         // 페이징 표시
@@ -541,6 +586,86 @@
         // 상세 페이지로 이동
         function goToDetail(id) {
             window.location.href = `/products/${id}`;
+        }
+
+        // ========== 위시리스트 기능 ==========
+
+        async function loadWishlistStatus() {
+            try {
+                const response = await fetch('/api/wishlist');
+                if (response.ok) {
+                    const wishlist = await response.json();
+                    wishlistItems = new Set(wishlist.map(item => item.productId));
+                }
+            } catch (error) {
+                console.error('Error loading wishlist:', error);
+            }
+        }
+
+        async function toggleWishlist(event, productId) {
+            event.stopPropagation(); // 카드 클릭 이벤트 방지
+
+            const isInWishlist = wishlistItems.has(productId);
+
+            try {
+                if (isInWishlist) {
+                    // 위시리스트에서 제거
+                    const response = await fetch(`/api/wishlist/${productId}`, {
+                        method: 'DELETE'
+                    });
+
+                    if (response.ok) {
+                        wishlistItems.delete(productId);
+                        updateWishlistButton(productId, false);
+                    } else if (response.status === 401 || response.status === 403) {
+                        alert('로그인이 필요합니다');
+                        window.location.href = '/login';
+                    } else {
+                        alert('위시리스트 제거에 실패했습니다');
+                    }
+                } else {
+                    // 위시리스트에 추가
+                    const response = await fetch('/api/wishlist', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ productId: productId })
+                    });
+
+                    if (response.ok) {
+                        wishlistItems.add(productId);
+                        updateWishlistButton(productId, true);
+                    } else if (response.status === 401 || response.status === 403) {
+                        alert('로그인이 필요합니다');
+                        window.location.href = '/login';
+                    } else if (response.status === 409) {
+                        alert('이미 위시리스트에 추가된 상품입니다');
+                    } else {
+                        alert('위시리스트 추가에 실패했습니다');
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('요청 처리에 실패했습니다');
+            }
+        }
+
+        function updateWishlistButton(productId, isInWishlist) {
+            const buttons = document.querySelectorAll('.wishlist-btn');
+            buttons.forEach(button => {
+                const card = button.closest('.product-card');
+                const cardProductId = parseInt(card.querySelector('img').getAttribute('onclick').match(/\d+/)[0]);
+
+                if (cardProductId === productId) {
+                    button.textContent = isInWishlist ? '❤️' : '♡';
+                    if (isInWishlist) {
+                        button.classList.add('active');
+                    } else {
+                        button.classList.remove('active');
+                    }
+                }
+            });
         }
     </script>
 </body>
