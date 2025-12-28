@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>위시리스트 - 쇼핑몰</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+        }
+
+        .navbar {
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .navbar-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background-color: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #5568d3;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .page-header {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .page-header h1 {
+            color: #333;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .page-header p {
+            color: #666;
+        }
+
+        .wishlist-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+        }
+
+        .wishlist-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+        }
+
+        .wishlist-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            background-color: #f0f0f0;
+            cursor: pointer;
+        }
+
+        .product-info {
+            padding: 1rem;
+        }
+
+        .product-name {
+            font-size: 1rem;
+            color: #333;
+            margin-bottom: 0.5rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .product-name:hover {
+            color: #667eea;
+        }
+
+        .product-price {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .product-category {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            background-color: #e2e8f0;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: #666;
+            margin-bottom: 1rem;
+        }
+
+        .product-stock {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 1rem;
+        }
+
+        .stock-available {
+            color: #48bb78;
+        }
+
+        .stock-low {
+            color: #f56565;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-small {
+            flex: 1;
+            padding: 0.6rem;
+            font-size: 0.9rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-cart {
+            background-color: #48bb78;
+            color: white;
+        }
+
+        .btn-cart:hover {
+            background-color: #38a169;
+        }
+
+        .btn-cart:disabled {
+            background-color: #cbd5e0;
+            cursor: not-allowed;
+        }
+
+        .btn-remove {
+            background-color: #f56565;
+            color: white;
+        }
+
+        .btn-remove:hover {
+            background-color: #e53e3e;
+        }
+
+        .remove-icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 35px;
+            height: 35px;
+            background-color: rgba(245, 101, 101, 0.9);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            z-index: 10;
+        }
+
+        .remove-icon:hover {
+            background-color: #e53e3e;
+            transform: scale(1.1);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .empty-icon {
+            font-size: 5rem;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state h2 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state p {
+            color: #666;
+            margin-bottom: 2rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+        }
+
+        @media (max-width: 1024px) {
+            .wishlist-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .wishlist-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .wishlist-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="navbar-content">
+            <a href="/" class="logo">🛒 쇼핑몰</a>
+            <div class="nav-buttons">
+                <a href="/products" class="btn">상품 목록</a>
+                <a href="/mypage" class="btn">마이페이지</a>
+                <a href="/" class="btn btn-primary">홈</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>❤️ 위시리스트</h1>
+            <p>관심 있는 상품을 모아보세요</p>
+        </div>
+
+        <div id="wishlistContent">
+            <div class="loading">위시리스트를 불러오는 중...</div>
+        </div>
+    </div>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            loadWishlist();
+        });
+
+        async function loadWishlist() {
+            try {
+                const response = await fetch('/api/wishlist');
+                if (!response.ok) {
+                    if (response.status === 401 || response.status === 403) {
+                        alert('로그인이 필요합니다.');
+                        window.location.href = '/login';
+                        return;
+                    }
+                    throw new Error('위시리스트를 불러올 수 없습니다');
+                }
+
+                const wishlist = await response.json();
+                displayWishlist(wishlist);
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('wishlistContent').innerHTML =
+                    '<div class="loading">위시리스트를 불러오는데 실패했습니다.</div>';
+            }
+        }
+
+        function displayWishlist(wishlist) {
+            const content = document.getElementById('wishlistContent');
+
+            if (!wishlist || wishlist.length === 0) {
+                content.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">💔</div>
+                        <h2>위시리스트가 비어있습니다</h2>
+                        <p>마음에 드는 상품을 위시리스트에 추가해보세요!</p>
+                        <a href="/products" class="btn btn-primary">쇼핑하러 가기</a>
+                    </div>
+                `;
+                return;
+            }
+
+            const wishlistHtml = wishlist.map(item => {
+                const stockStatus = item.productStock > 10
+                    ? `<span class="stock-available">재고 충분</span>`
+                    : item.productStock > 0
+                        ? `<span class="stock-low">재고 ${item.productStock}개</span>`
+                        : `<span class="stock-low">품절</span>`;
+
+                return `
+                    <div class="wishlist-card">
+                        <button class="remove-icon" onclick="removeFromWishlist(${item.productId})" title="위시리스트에서 제거">
+                            ×
+                        </button>
+                        <img src="${item.productImageUrl || 'https://via.placeholder.com/250'}" 
+                             alt="${item.productName}" 
+                             class="product-image"
+                             onclick="goToDetail(${item.productId})"
+                             onerror="this.src='https://via.placeholder.com/250'">
+                        <div class="product-info">
+                            <div class="product-name" onclick="goToDetail(${item.productId})">${item.productName}</div>
+                            <div class="product-price">${item.productPrice.toLocaleString()}원</div>
+                            ${item.productCategory ? `<span class="product-category">${item.productCategory}</span>` : ''}
+                            <div class="product-stock">${stockStatus}</div>
+                            <div class="card-actions">
+                                <button class="btn-small btn-cart" 
+                                        onclick="addToCart(${item.productId})"
+                                        ${item.productStock <= 0 ? 'disabled' : ''}>
+                                    🛒 장바구니
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            content.innerHTML = `<div class="wishlist-grid">${wishlistHtml}</div>`;
+        }
+
+        async function removeFromWishlist(productId) {
+            if (!confirm('위시리스트에서 제거하시겠습니까?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/wishlist/${productId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    loadWishlist(); // 목록 새로고침
+                } else {
+                    alert('위시리스트 제거에 실패했습니다');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('위시리스트 제거에 실패했습니다');
+            }
+        }
+
+        async function addToCart(productId) {
+            try {
+                const response = await fetch('/api/cart', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        productId: productId,
+                        quantity: 1
+                    })
+                });
+
+                if (response.ok) {
+                    if (confirm('장바구니에 담았습니다!\n장바구니로 이동하시겠습니까?')) {
+                        window.location.href = '/cart';
+                    }
+                } else if (response.status === 401 || response.status === 403) {
+                    alert('로그인이 필요합니다');
+                    window.location.href = '/login';
+                } else {
+                    const error = await response.text();
+                    alert(error || '장바구니 담기에 실패했습니다');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('장바구니 담기에 실패했습니다');
+            }
+        }
+
+        function goToDetail(productId) {
+            window.location.href = `/products/${productId}`;
+        }
+    </script>
+</body>
+
+</html>
